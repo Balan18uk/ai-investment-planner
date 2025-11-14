@@ -9,6 +9,8 @@ from core.recommender import (
     infer_risk_profile,
     recommend_products,
 )
+from core.report import build_pdf_report
+
 
 # --------------------------------------------------
 # Streamlit page setup
@@ -21,22 +23,37 @@ st.set_page_config(
 st.title("💼 AI Investment Planner")
 st.write(
     "Describe your client's financial situation and goals in natural language. "
-    "The AI will draft a profile, then you can review and complete it before getting recommendations."
+    "The AI will draft a profile, then you can review and complete it before "
+    "getting recommendations."
 )
 
 # --------------------------------------------------
-# API key status
+# API key status (only show if missing)
 # --------------------------------------------------
 if not OPENAI_API_KEY:
-    st.error("❌ OPENAI_API_KEY is missing. Please add it to your .env file.")
-else:
-    st.success("✅ OpenAI API key loaded from .env")
+    st.error("❌ OpenAI API key missing. Please add it to your .env file.")
 
 # --------------------------------------------------
 # Session state initialisation
 # --------------------------------------------------
 if "ai_profile" not in st.session_state:
     st.session_state.ai_profile = None
+
+# --------------------------------------------------
+# Session state initialisation
+# --------------------------------------------------
+if "ai_profile" not in st.session_state:
+    st.session_state.ai_profile = None
+
+if "reset" not in st.session_state:
+    st.session_state.reset = False
+
+# Handle reset – this must run before widgets are created
+if st.session_state.reset:
+    st.session_state.user_text = ""
+    st.session_state.ai_profile = None
+    st.session_state.reset = False
+
 
 # --------------------------------------------------
 # Free text input
@@ -46,8 +63,10 @@ user_text = st.text_area(
     height=180,
     placeholder=(
         "Example: The client wants to invest for a house deposit in 5 years. "
-        "He earns £45,000 per year, has £10,000 savings, no debt, and is cautious about risk."
+        "He earns £45,000 per year, has £10,000 savings, no debt, and is "
+        "cautious about risk."
     ),
+    key="user_text",  
 )
 
 analyze_clicked = st.button("Analyze profile with AI")
@@ -166,6 +185,14 @@ if ai_profile is not None:
         st.subheader("✅ Confirmed client profile")
         st.json(final_profile.__dict__)
 
+        # Leverage warning
+        if final_profile.investment_budget > final_profile.savings:
+            st.warning(
+                "⚠️ The amount to be invested is higher than current savings. "
+                "This may involve borrowing or leverage and increases "
+                "investment risk."
+            )
+
         # Risk score and profile
         score = simple_risk_score(final_profile)
         risk_profile = infer_risk_profile(score)
@@ -181,15 +208,30 @@ if ai_profile is not None:
         recommendations = recommend_products(final_profile)
 
         if recommendations:
-            for rec in recommendations:
+            # Render product cards
+            for idx, rec in enumerate(recommendations):
+                # Decide styling: first = best match, others = alternatives
+                if idx == 0:
+                    # Best match - green-ish background
+                    bg_colour = "#e6ffe6"
+                    title = "🌟 Best match"
+                else:
+                    # Alternative options - light grey background
+                    bg_colour = "#f5f5f5"
+                    title = "Alternative option"
+
+                principal = final_profile.investment_budget
+                months = final_profile.investment_term_months
+
+                # Build content lines (plain text, we will wrap in HTML)
                 lines = [
-                    f"**{rec.product_name}** ({rec.product_type})",
+                    f"<b>{rec.product_name}</b> ({rec.product_type})",
                     f"- Risk level: {rec.risk_level}",
                     f"- Minimum term: {rec.min_term_months} months",
                     f"- Minimum investment: £{rec.min_investment:,.0f}",
                 ]
 
-                # Indicative annual return
+                # Indicative annual return and projection
                 rate = getattr(rec, "expected_return_pct", None)
                 if rate is not None:
                     lines.append(
@@ -197,13 +239,9 @@ if ai_profile is not None:
                         "(illustrative only, not guaranteed)"
                     )
 
-                    # Only show projection if client can meet the minimum
-                    if final_profile.investment_budget >= rec.min_investment:
-                        principal = final_profile.investment_budget
-                        months = final_profile.investment_term_months
+                    if principal >= rec.min_investment:
                         years = months / 12.0
                         r = rate / 100.0
-
                         future_value = principal * (1 + r) ** years
                         gain = future_value - principal
 
@@ -220,30 +258,66 @@ if ai_profile is not None:
                                     f"{whole_years} years {remaining_months} months"
                                 )
 
-                        lines.append(
-                            f"- If you invest £{principal:,.0f} for {duration_text}, "
-                            f"the projected value could be about £{future_value:,.0f} "
-                            f"(gain of ~£{gain:,.0f})."
+                        # Highlight projection sentence
+                        projection_line = (
+                            f"💡 <b>If you invest £{principal:,.0f} for "
+                            f"{duration_text}, the projected value could be about "
+                            f"£{future_value:,.0f} (gain of ~£{gain:,.0f}).</b>"
                         )
+                        lines.append(projection_line)
                     else:
                         lines.append(
                             "- Client budget is below the minimum investment, "
                             "so projection is not shown."
                         )
 
-                st.markdown("  \n".join(lines))
+                # Render card with background colour
+                card_html = f"""
+                <div style="background-color:{bg_colour}; padding:16px;
+                            border-radius:10px; margin-bottom:12px;">
+                    <div style="font-weight:600; margin-bottom:4px;">
+                        {title}
+                    </div>
+                    <div>
+                        {'<br>'.join(lines)}
+                    </div>
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
+
+            # Build PDF report and show download button
+            pdf_bytes = build_pdf_report(
+                profile=final_profile,
+                risk_score=score,
+                risk_profile=risk_profile,
+                recommendations=recommendations,
+            )
+
+            st.download_button(
+                label="📄 Download PDF report",
+                data=pdf_bytes,
+                file_name="investment_plan_report.pdf",
+                mime="application/pdf",
+            )
 
             st.caption(
-                "Returns and projections are hypothetical and for demonstration purposes only. "
-                "This app does not provide real financial advice or guaranteed outcomes."
+                "Returns and projections are hypothetical and for demonstration "
+                "purposes only. This app does not provide real financial advice "
+                "or guaranteed outcomes."
             )
         else:
             st.warning(
                 "No suitable products were found for this profile. "
                 "You may want to adjust the inputs or product catalogue."
             )
-        if final_profile.investment_budget > final_profile.savings:
-            st.warning(
-            "⚠️ You are planning to invest more than your total savings. "
-            "This may involve borrowing or leverage and increases investment risk."
-            )
+
+# --------------------------------------------------
+# Reset button - always visible
+# --------------------------------------------------
+
+st.markdown("---")
+if st.button("🔄 Reset and start again"):
+    st.session_state.reset = True
+    st.rerun()
+
+

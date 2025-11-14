@@ -116,7 +116,7 @@ def simple_risk_score(profile: InvestorProfile) -> float:
 
 def infer_risk_profile(score: float) -> str:
     """
-    Map numeric score 0–100 into a risk profile label.
+    Map numeric score 0-100 into a risk profile label.
     """
     if score <= 20:
         return "Defensive"
