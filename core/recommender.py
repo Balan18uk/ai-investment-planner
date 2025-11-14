@@ -63,6 +63,9 @@ def recommend_products(profile: InvestorProfile, top_n: int = 5) -> List[Recomme
                 risk_level=int(row["Risk_Level"]),
                 min_term_months=int(row["Min_Term_Months"]),
                 min_investment=float(row["Min_Investment"]),
+                expected_return_pct=float(row["Expected_Annual_Return_pct"])
+                if "Expected_Annual_Return_pct" in row and not pd.isna(row["Expected_Annual_Return_pct"])
+                else None,
             )
         )
     return recs

@@ -20,6 +20,9 @@ class InvestorProfile:
     risk_tolerance: int
     investment_purpose: InvestmentPurpose
 
+from dataclasses import dataclass
+from typing import Optional
+
 @dataclass
 class Recommendation:
     product_name: str
@@ -27,3 +30,11 @@ class Recommendation:
     risk_level: int
     min_term_months: int
     min_investment: float
+    expected_return_pct: Optional[float] = None
+
+
+    from dataclasses import dataclass
+from typing import Optional
+
+
+

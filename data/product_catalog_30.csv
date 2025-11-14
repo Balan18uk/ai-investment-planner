@@ -1,31 +1,31 @@
-Product_Name,Product_Type,Risk_Level,Min_Term_Months,Min_Investment,Suitable_Risk_Profiles,Suitable_Purposes
-Government Bond Fund,Bond,1,12,1000,"Defensive,Conservative","Funding education,Buying property"
-Short-Term Income Bond,Bond,1,6,500,Defensive,Buying property
-Education Savings Plan,Savings Plan,1,36,500,"Defensive,Conservative",Funding education
-Long-Term Bond Ladder,Bond Portfolio,1,24,2000,Defensive,Funding education
-UK Income Fund,Income Fund,2,24,1000,Conservative,Retirement savings
-Defensive Multi-Asset Fund,Multi-Asset,2,12,1000,Conservative,All
-UK Corporate Bond Fund,Bond,2,12,1000,Conservative,"Buying property,Funding education"
-Index Retirement Fund 2025,Target Retirement Fund,2,60,2000,"Conservative,Balanced",Retirement savings
-Balanced Index Portfolio,Balanced Fund,3,36,2000,Balanced,All
-Global ESG Fund,Equity/Balanced,3,36,1500,Balanced,"Wealth accumulation,Retirement"
-High Yield Bond Fund,Bond,3,18,1500,"Balanced,Growth","Retirement,Wealth accumulation"
-International Dividend ETF,Equity ETF,3,24,1000,Balanced,Retirement
-Property Investment Trust,Real Estate Fund,3,60,5000,Balanced,"Buying property,Wealth accumulation"
-Global Balanced Portfolio,Balanced Fund,3,36,2000,Balanced,All
-Growth Multi-Asset Fund,Multi-Asset,4,24,1500,Growth,Wealth accumulation
-Global Equity Growth ETF,Equity ETF,4,36,1000,Growth,"Wealth accumulation,Retirement"
-Global Real Assets Fund,Real Assets,4,60,3000,Growth,Wealth accumulation
-Emerging Markets ETF,Equity ETF,4,36,1500,Growth,Wealth accumulation
-High-Growth Tech ETF,Sector ETF,5,48,3000,Aggressive,Wealth accumulation
-Aggressive Growth Multi-Sector Fund,Equity,5,36,2500,Aggressive,Wealth accumulation
-Frontier Markets Equity Fund,Equity,5,48,2000,Aggressive,Wealth accumulation
-Crypto Exposure ETF,Alternative,5,36,500,Aggressive,Wealth accumulation
-Small Cap Growth Fund,Equity,5,36,1500,Aggressive,Wealth accumulation
-Long-Term Global Equity Fund,Equity,4,60,2000,"Growth,Aggressive",Retirement
-Renewable Energy Fund,Sector Fund,4,36,1500,Growth,Wealth accumulation
-Healthcare Innovation ETF,Sector ETF,4,36,1500,Growth,Wealth accumulation
-Global Infrastructure Fund,Real Assets,3,48,2000,Balanced,Retirement
-Stable Value Savings Plan,Capital Preservation,1,12,300,Defensive,Funding education
-Short-Term Treasury ETF,Bond ETF,1,6,500,Defensive,Buying property
-Capital Appreciation Growth Fund,Equity Growth,4,36,2000,Growth,Wealth accumulation
+Product_Name,Product_Type,Risk_Level,Min_Term_Months,Min_Investment,Suitable_Risk_Profiles,Suitable_Purposes,Expected_Annual_Return_pct
+Government Bond Fund,Bond,1,12,1000,"Defensive,Conservative","Funding education,Buying property",2.5
+Short-Term Income Bond,Bond,1,6,500,Defensive,Buying property,2.5
+Education Savings Plan,Savings Plan,1,36,500,"Defensive,Conservative",Funding education,2.5
+Long-Term Bond Ladder,Bond Portfolio,1,24,2000,Defensive,Funding education,2.5
+UK Income Fund,Income Fund,2,24,1000,Conservative,Retirement savings,3.5
+Defensive Multi-Asset Fund,Multi-Asset,2,12,1000,Conservative,All,3.5
+UK Corporate Bond Fund,Bond,2,12,1000,Conservative,"Buying property,Funding education",3.5
+Index Retirement Fund 2025,Target Retirement Fund,2,60,2000,"Conservative,Balanced",Retirement savings,3.5
+Balanced Index Portfolio,Balanced Fund,3,36,2000,Balanced,All,5.0
+Global ESG Fund,Equity/Balanced,3,36,1500,Balanced,"Wealth accumulation,Retirement",5.0
+High Yield Bond Fund,Bond,3,18,1500,"Balanced,Growth","Retirement,Wealth accumulation",5.0
+International Dividend ETF,Equity ETF,3,24,1000,Balanced,Retirement,5.0
+Property Investment Trust,Real Estate Fund,3,60,5000,Balanced,"Buying property,Wealth accumulation",5.0
+Global Balanced Portfolio,Balanced Fund,3,36,2000,Balanced,All,5.0
+Growth Multi-Asset Fund,Multi-Asset,4,24,1500,Growth,Wealth accumulation,7.0
+Global Equity Growth ETF,Equity ETF,4,36,1000,Growth,"Wealth accumulation,Retirement",7.0
+Global Real Assets Fund,Real Assets,4,60,3000,Growth,Wealth accumulation,7.0
+Emerging Markets ETF,Equity ETF,4,36,1500,Growth,Wealth accumulation,7.0
+High-Growth Tech ETF,Sector ETF,5,48,3000,Aggressive,Wealth accumulation,10.0
+Aggressive Growth Multi-Sector Fund,Equity,5,36,2500,Aggressive,Wealth accumulation,10.0
+Frontier Markets Equity Fund,Equity,5,48,2000,Aggressive,Wealth accumulation,10.0
+Crypto Exposure ETF,Alternative,5,36,500,Aggressive,Wealth accumulation,10.0
+Small Cap Growth Fund,Equity,5,36,1500,Aggressive,Wealth accumulation,10.0
+Long-Term Global Equity Fund,Equity,4,60,2000,"Growth,Aggressive",Retirement,7.0
+Renewable Energy Fund,Sector Fund,4,36,1500,Growth,Wealth accumulation,7.0
+Healthcare Innovation ETF,Sector ETF,4,36,1500,Growth,Wealth accumulation,7.0
+Global Infrastructure Fund,Real Assets,3,48,2000,Balanced,Retirement,5.0
+Stable Value Savings Plan,Capital Preservation,1,12,300,Defensive,Funding education,2.5
+Short-Term Treasury ETF,Bond ETF,1,6,500,Defensive,Buying property,2.5
+Capital Appreciation Growth Fund,Equity Growth,4,36,2000,Growth,Wealth accumulation,7.0
