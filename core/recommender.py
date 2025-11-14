@@ -1,61 +1,103 @@
 # core/recommender.py
-from typing import List
+
 import pandas as pd
-from .schemas import InvestorProfile, Recommendation, RiskProfile, InvestmentPurpose
+from typing import List
+
+from .schemas import InvestorProfile, Recommendation
 from .config import PRODUCT_CATALOG_PATH
 
 _product_df_cache: pd.DataFrame | None = None
 
+
 def load_product_catalog() -> pd.DataFrame:
+    """Load product catalogue once and cache it."""
     global _product_df_cache
     if _product_df_cache is None:
-        df = pd.read_csv(PRODUCT_CATALOG_PATH)
-        _product_df_cache = df
+        _product_df_cache = pd.read_csv(PRODUCT_CATALOG_PATH)
     return _product_df_cache
 
-def infer_risk_profile(final_risk_score: float) -> RiskProfile:
-    if final_risk_score <= 20:
-        return "Defensive"
-    if final_risk_score <= 40:
-        return "Conservative"
-    if final_risk_score <= 60:
-        return "Balanced"
-    if final_risk_score <= 80:
-        return "Growth"
-    return "Aggressive"
 
 def simple_risk_score(profile: InvestorProfile) -> float:
-    # Very simple example: weight term & tolerance & budget
+    """
+    Very simple illustrative risk score:
+    - term (longer) increases capacity
+    - risk_tolerance is main driver
+    - budget gives a small extra capacity boost
+    """
     term_factor = min(profile.investment_term_months / 360, 1.0) * 100
     tol_factor = (profile.risk_tolerance - 1) / 4 * 100
-    # budget factor (higher investable -> slightly higher capacity)
     budget_factor = min(profile.investment_budget / 100000, 1.0) * 100
 
     return 0.5 * tol_factor + 0.3 * term_factor + 0.2 * budget_factor
 
+
+def infer_risk_profile(score: float) -> str:
+    """
+    Map numeric score 0–100 into a risk profile label.
+    """
+    if score <= 20:
+        return "Defensive"
+    if score <= 40:
+        return "Conservative"
+    if score <= 60:
+        return "Balanced"
+    if score <= 80:
+        return "Growth"
+    return "Aggressive"
+
+
 def recommend_products(profile: InvestorProfile, top_n: int = 5) -> List[Recommendation]:
+    """
+    Recommend up to top_n products using a two-stage logic:
+
+    1) Hard filter on risk profile suitability.
+    2) Rank by affordability, risk distance, and min investment.
+    3) First take products matching the investment purpose.
+    4) If fewer than top_n, fill remaining slots from other suitable products.
+    """
     df = load_product_catalog().copy()
 
+    # 1) Work out risk profile from numeric score
     score = simple_risk_score(profile)
     risk_profile = infer_risk_profile(score)
 
-    # Filter by risk profile
+    # 2) Hard filter by risk profile (appropriateness)
     df = df[df["Suitable_Risk_Profiles"].str.contains(risk_profile)]
 
-    # Filter by purpose where possible
-    purpose = profile.investment_purpose
-    df_purpose = df[df["Suitable_Purposes"].str.contains(purpose)]
-    if not df_purpose.empty:
-        df = df_purpose
+    if df.empty:
+        return []
 
-    # Basic ranking: closer risk level to tolerance, and affordable
+    # 3) Basic ranking features
     df["affordable"] = profile.investment_budget >= df["Min_Investment"]
     df["risk_diff"] = (df["Risk_Level"] - profile.risk_tolerance).abs()
-    df = df.sort_values(["affordable", "risk_diff", "Min_Investment"],
-                        ascending=[False, True, True])
+
+    # 4) Purpose match flag (soft filter)
+    df["purpose_match"] = df["Suitable_Purposes"].str.contains(profile.investment_purpose)
+
+    # ---------- Stage 1: products that match the purpose ----------
+    df_purpose = df[df["purpose_match"]]
+
+    df_purpose = df_purpose.sort_values(
+        ["affordable", "risk_diff", "Min_Investment"],
+        ascending=[False, True, True],
+    )
+
+    selected = df_purpose.head(top_n)
+
+    # ---------- Stage 2: if we have fewer than top_n, fill from others ----------
+    if len(selected) < top_n:
+        remaining = df[~df.index.isin(selected.index)]
+        remaining = remaining.sort_values(
+            ["affordable", "risk_diff", "Min_Investment"],
+            ascending=[False, True, True],
+        )
+
+        needed = top_n - len(selected)
+        extra = remaining.head(needed)
+        selected = pd.concat([selected, extra])
 
     recs: List[Recommendation] = []
-    for _, row in df.head(top_n).iterrows():
+    for _, row in selected.iterrows():
         recs.append(
             Recommendation(
                 product_name=row["Product_Name"],
@@ -64,8 +106,10 @@ def recommend_products(profile: InvestorProfile, top_n: int = 5) -> List[Recomme
                 min_term_months=int(row["Min_Term_Months"]),
                 min_investment=float(row["Min_Investment"]),
                 expected_return_pct=float(row["Expected_Annual_Return_pct"])
-                if "Expected_Annual_Return_pct" in row and not pd.isna(row["Expected_Annual_Return_pct"])
+                if "Expected_Annual_Return_pct" in row
+                and not pd.isna(row["Expected_Annual_Return_pct"])
                 else None,
             )
         )
+
     return recs
