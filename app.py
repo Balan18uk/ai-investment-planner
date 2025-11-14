@@ -24,7 +24,9 @@ st.write(
     "The AI will draft a profile, then you can review and complete it before getting recommendations."
 )
 
+# --------------------------------------------------
 # API key status
+# --------------------------------------------------
 if not OPENAI_API_KEY:
     st.error("❌ OPENAI_API_KEY is missing. Please add it to your .env file.")
 else:
@@ -186,19 +188,54 @@ if ai_profile is not None:
                     f"- Minimum term: {rec.min_term_months} months",
                     f"- Minimum investment: £{rec.min_investment:,.0f}",
                 ]
-                # Optional expected return
-                if getattr(rec, "expected_return_pct", None) is not None:
+
+                # Indicative annual return
+                rate = getattr(rec, "expected_return_pct", None)
+                if rate is not None:
                     lines.append(
-                        f"- Indicative annual return: "
-                        f"{rec.expected_return_pct:.1f}% "
+                        f"- Indicative annual return: {rate:.1f}% "
                         "(illustrative only, not guaranteed)"
                     )
+
+                    # Only show projection if client can meet the minimum
+                    if final_profile.investment_budget >= rec.min_investment:
+                        principal = final_profile.investment_budget
+                        months = final_profile.investment_term_months
+                        years = months / 12.0
+                        r = rate / 100.0
+
+                        future_value = principal * (1 + r) ** years
+                        gain = future_value - principal
+
+                        # Human-readable duration
+                        if months < 24:
+                            duration_text = f"{months} months"
+                        else:
+                            whole_years = months // 12
+                            remaining_months = months % 12
+                            if remaining_months == 0:
+                                duration_text = f"{whole_years} years"
+                            else:
+                                duration_text = (
+                                    f"{whole_years} years {remaining_months} months"
+                                )
+
+                        lines.append(
+                            f"- If you invest £{principal:,.0f} for {duration_text}, "
+                            f"the projected value could be about £{future_value:,.0f} "
+                            f"(gain of ~£{gain:,.0f})."
+                        )
+                    else:
+                        lines.append(
+                            "- Client budget is below the minimum investment, "
+                            "so projection is not shown."
+                        )
 
                 st.markdown("  \n".join(lines))
 
             st.caption(
-                "Returns shown are hypothetical and for demonstration purposes only. "
-                "This app does not provide real financial advice."
+                "Returns and projections are hypothetical and for demonstration purposes only. "
+                "This app does not provide real financial advice or guaranteed outcomes."
             )
         else:
             st.warning(
