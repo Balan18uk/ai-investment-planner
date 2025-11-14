@@ -242,3 +242,8 @@ if ai_profile is not None:
                 "No suitable products were found for this profile. "
                 "You may want to adjust the inputs or product catalogue."
             )
+        if final_profile.investment_budget > final_profile.savings:
+            st.warning(
+            "⚠️ You are planning to invest more than your total savings. "
+            "This may involve borrowing or leverage and increases investment risk."
+            )

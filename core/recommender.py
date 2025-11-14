@@ -23,12 +23,30 @@ def simple_risk_score(profile: InvestorProfile) -> float:
     - term (longer) increases capacity
     - risk_tolerance is main driver
     - budget gives a small extra capacity boost
+    - investing more than current savings (leverage) increases risk
     """
+    # Base components
     term_factor = min(profile.investment_term_months / 360, 1.0) * 100
     tol_factor = (profile.risk_tolerance - 1) / 4 * 100
     budget_factor = min(profile.investment_budget / 100000, 1.0) * 100
 
-    return 0.5 * tol_factor + 0.3 * term_factor + 0.2 * budget_factor
+    base_score = 0.5 * tol_factor + 0.3 * term_factor + 0.2 * budget_factor
+
+    # Extra risk if investing more than savings (leverage behaviour)
+    leverage_boost = 0.0
+    if profile.investment_budget > profile.savings:
+        # How much bigger the investment is than savings
+        leverage_ratio = (profile.investment_budget - profile.savings) / max(
+            profile.savings, 1.0
+        )
+        # Cap the effect so it does not explode
+        leverage_boost = min(leverage_ratio * 20.0, 20.0)
+
+    score = base_score + leverage_boost
+
+    # Keep score in 0 to 100 range
+    return max(0.0, min(score, 100.0))
+
 
 
 def infer_risk_profile(score: float) -> str:
