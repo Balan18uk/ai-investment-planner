@@ -1,4 +1,7 @@
 # core/schemas.py
+# © 2025 TrueVizion Hub Ltd. All rights reserved.
+# Proprietary and confidential. Unauthorized use is prohibited.
+
 from dataclasses import dataclass
 from typing import List, Literal
 

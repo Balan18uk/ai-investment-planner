@@ -1,3 +1,6 @@
+# © 2025 TrueVizion Hub Ltd. All rights reserved.
+# Proprietary and confidential. Unauthorized use is prohibited.
+
 import streamlit as st
 
 from core.config import OPENAI_API_KEY

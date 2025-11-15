@@ -6,29 +6,34 @@ from fpdf import FPDF
 from .schemas import InvestorProfile, Recommendation
 
 
-
-
 class InvestmentReportPDF(FPDF):
     def header(self):
-        # Title
+        # Logo
+        try:
+            # Adjust w (width) if needed; height will scale automatically
+            self.image("assets/truevizion_logo.png", x=10, y=8, w=26)
+        except Exception:
+            pass
+
+        # Title to the right of the logo
+        self.set_xy(42, 10)  # x just to the right of the logo, y near top
         self.set_font("Helvetica", "B", 14)
-        self.cell(0, 10, "AI Investment Plan Summary", ln=1)
+        self.cell(0, 8, "AI Investment Plan Summary", ln=1)
+
+        # Timestamp under the title
         self.set_font("Helvetica", "", 9)
         self.set_text_color(120, 120, 120)
+        self.set_x(42)
         self.cell(
             0,
             6,
             f"Generated on {datetime.now().strftime('%d %b %Y %H:%M')}",
             ln=1,
         )
-        self.ln(2)
-        self.set_text_color(0, 0, 0)
 
-    def footer(self):
-        self.set_y(-15)
-        self.set_font("Helvetica", "I", 8)
-        self.set_text_color(120, 120, 120)
-        self.cell(0, 10, f"Page {self.page_no()}", 0, 0, "C")
+        # Reset colour and move cursor clearly below the logo/title area
+        self.set_text_color(0, 0, 0)
+        self.ln(10)  # add extra vertical space so body starts lower
 
 
 def build_pdf_report(
@@ -44,6 +49,15 @@ def build_pdf_report(
     pdf = InvestmentReportPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
+
+    pdf = InvestmentReportPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    # ---------- Section: Client Profile ----------
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(0, 8, "Client Profile", ln=1)
+
 
     # ---------- Section: Client Profile ----------
     pdf.set_font("Helvetica", "B", 12)

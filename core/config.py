@@ -1,3 +1,6 @@
+# © 2025 TrueVizion Hub Ltd. All rights reserved.
+# Proprietary and confidential. Unauthorized use is prohibited.
+
 # core/config.py
 from pathlib import Path
 import os

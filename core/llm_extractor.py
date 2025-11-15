@@ -1,4 +1,7 @@
-# core/llm_extractor.py
+# © 2025 TrueVizion Hub Ltd. All rights reserved.
+# Proprietary and confidential. Unauthorized use is prohibited.
+
+
 import json
 from openai import OpenAI
 from .schemas import InvestorProfile, InvestmentPurpose
