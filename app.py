@@ -211,6 +211,30 @@ if ai_profile is not None:
         recommendations = recommend_products(final_profile)
 
         if recommendations:
+            # Map risk profile label to numeric risk level
+            profile_to_level = {
+            "Defensive": 1,
+            "Conservative": 2,
+            "Balanced": 3,
+            "Growth": 4,
+            "Aggressive": 5,
+            }
+            target_risk_level = profile_to_level.get(risk_profile, 3)
+
+            # Render product cards
+            for idx, rec in enumerate(recommendations):
+            # How far is this product from the target risk level?
+                risk_diff = abs(rec.risk_level - target_risk_level)
+
+            if risk_diff <= 1:
+                # Good risk match → Best match
+                bg_colour = "#e6ffe6"
+                title = "🌟 Best match"
+            else:
+                # Much higher / lower risk → Alternative option
+                bg_colour = "#f5f5f5"
+                title = "Alternative option"
+
             # Render product cards
             for idx, rec in enumerate(recommendations):
                 # Decide styling: first = best match, others = alternatives
