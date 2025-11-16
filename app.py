@@ -23,12 +23,18 @@ st.set_page_config(
     layout="centered",
 )
 
-st.title("💼 AI Investment Planner")
-st.write(
-    "Describe your client's financial situation and goals in natural language. "
-    "The AI will draft a profile, then you can review and complete it before "
-    "getting recommendations."
-)
+
+# Header with logo and title
+col_logo, col_title = st.columns([1, 4])
+
+with col_logo:
+    st.image("assets/truevizion_logo.png", use_container_width=True)
+
+with col_title:
+    st.title("💼 AI Investment Planner")
+    st.write(
+        "TrueVizion Hub – AI-assisted investment profiling and product suggestions."
+    )
 
 # --------------------------------------------------
 # API key status (only show if missing)
