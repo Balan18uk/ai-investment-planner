@@ -22,15 +22,15 @@ def infer_income_bracket(annual_income: float | None) -> str:
 
     # Adjust thresholds and labels to match your INCOME_BANDS exactly
     if annual_income < 25_000:
-        return "0-£25,000"
+        return INCOME_BANDS[1]
     elif annual_income < 50_000:
-        return "25,000 - 49,999"
+        return INCOME_BANDS[2]
     elif annual_income < 75_000:
-        return "50,000 - 74,999"
+        return INCOME_BANDS[3]
     elif annual_income < 100_000:
-        return "75,000 - 99,999"
+        return INCOME_BANDS[4]
     else:
-        return "100,000 or more"
+        return INCOME_BANDS[5]
 
 
 def extract_profile(user_text: str) -> InvestorProfile:
