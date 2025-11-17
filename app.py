@@ -7,6 +7,7 @@ from core.config import OPENAI_API_KEY
 from core.llm_extractor import extract_profile
 from core.mappings import INCOME_BANDS, DEBT_BANDS, PURPOSES
 from core.schemas import InvestorProfile
+from core.cards import make_product_card_html
 from core.recommender import (
     simple_risk_score,
     infer_risk_profile,
@@ -220,95 +221,39 @@ if ai_profile is not None:
             principal = final_profile.investment_budget
             months = final_profile.investment_term_months
 
-            best_card_html = None
-            alt_cards_html: list[str] = []
+            # ----- Best match (first product, full width) -----
+            best = recommendations[0]
 
-            for idx, rec in enumerate(recommendations):
-                # First product = Best match, others = Alternative option
-                if idx == 0:
-                    bg_colour = "#e6ffe6"
-                    title = "🌟 Best match"
-                else:
-                    bg_colour = "#f5f5f5"
-                    title = "Alternative option"
+            # Optional: show a Streamlit badge above the card
+            #st.badge("Best match", color="green")
 
-                # Build content lines (plain text, we will wrap in HTML)
-                lines = [
-                    f"<b>{rec.product_name}</b> ({rec.product_type})",
-                    f"- Risk level: {rec.risk_level}",
-                    f"- Minimum term: {rec.min_term_months} months",
-                    f"- Minimum investment: £{rec.min_investment:,.0f}",
-                ]
+            best_html = make_product_card_html(
+                best,
+                principal=principal,
+                term_months=months,
+                label="Best match",
+                highlight=True,  # uses bg_best
+            )
+            st.markdown(best_html, unsafe_allow_html=True)
 
-                # Indicative annual return and projection
-                rate = getattr(rec, "expected_return_pct", None)
-                if rate is not None:
-                    lines.append(
-                        f"- Indicative annual return: {rate:.1f}% "
-                        "(illustrative only, not guaranteed)"
-                    )
-
-                    if principal >= rec.min_investment:
-                        years = months / 12.0
-                        r = rate / 100.0
-                        future_value = principal * (1 + r) ** years
-                        gain = future_value - principal
-
-                        # Human-readable duration
-                        if months < 24:
-                            duration_text = f"{months} months"
-                        else:
-                            whole_years = months // 12
-                            remaining_months = months % 12
-                            if remaining_months == 0:
-                                duration_text = f"{whole_years} years"
-                            else:
-                                duration_text = f"{whole_years} years {remaining_months} months"
-
-                        # Highlight projection sentence
-                        projection_line = (
-                            f"💡 <b>If you invest £{principal:,.0f} for "
-                            f"{duration_text}, the projected value could be about "
-                            f"£{future_value:,.0f} (gain of ~£{gain:,.0f}).</b>"
-                        )
-                        lines.append(projection_line)
-                    else:
-                        lines.append(
-                            "- Client budget is below the minimum investment, "
-                            "so projection is not shown."
-                        )
-
-                # Build the card HTML once
-                card_html = f"""
-                <div style="background-color:{bg_colour}; padding:16px;
-                            border-radius:10px; margin-bottom:12px;">
-                    <div style="font-weight:600; margin-bottom:4px;">
-                        {title}
-                    </div>
-                    <div>
-                        {'<br>'.join(lines)}
-                    </div>
-                </div>
-                """
-
-                # Store separately: first as best, rest as alternatives
-                if idx == 0:
-                    best_card_html = card_html
-                else:
-                    alt_cards_html.append(card_html)
-
-            # 🔹 Render best match full width
-            if best_card_html:
-                st.markdown(best_card_html, unsafe_allow_html=True)
-
-            # 🔹 Render alternatives in two columns
-            if alt_cards_html:
+            # ----- Alternative options (two columns) -----
+            if len(recommendations) > 1:
                 st.markdown("#### Alternative options")
                 col1, col2 = st.columns(2)
-                for i, html in enumerate(alt_cards_html):
+
+                for i, rec in enumerate(recommendations[1:]):
+                    html = make_product_card_html(
+                        rec,
+                        principal=principal,
+                        term_months=months,
+                        label="Alternative option",
+                        highlight=False,  # uses bg_alt
+                    )
                     target_col = col1 if i % 2 == 0 else col2
                     with target_col:
                         st.markdown(html, unsafe_allow_html=True)
+
+            # PDF generation as before...              
 
             # (PDF generation stays exactly as you have it)
             pdf_bytes = build_pdf_report(
@@ -333,34 +278,6 @@ if ai_profile is not None:
                 "No suitable products were found for this profile. "
                 "You may want to adjust the inputs or product catalogue."
             )
-
-
-
-            # Build PDF report and show download button
-        #     pdf_bytes = build_pdf_report(
-        #         profile=final_profile,
-        #         risk_score=score,
-        #         risk_profile=risk_profile,
-        #         recommendations=recommendations,
-        #     )
-
-        #     st.download_button(
-        #         label="📄 Download PDF report",
-        #         data=pdf_bytes,
-        #         file_name="investment_plan_report.pdf",
-        #         mime="application/pdf",
-        #     )
-
-        #     st.caption(
-        #         "Returns and projections are hypothetical and for demonstration "
-        #         "purposes only. This app does not provide real financial advice "
-        #         "or guaranteed outcomes."
-        #     )
-        # else:
-        #     st.warning(
-        #         "No suitable products were found for this profile. "
-        #         "You may want to adjust the inputs or product catalogue."
-        #     )
 
 # --------------------------------------------------
 # Reset button - always visible
