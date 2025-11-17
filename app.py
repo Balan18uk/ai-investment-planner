@@ -217,44 +217,20 @@ if ai_profile is not None:
         recommendations = recommend_products(final_profile)
 
         if recommendations:
-            # Map risk profile label to numeric risk level
-            profile_to_level = {
-            "Defensive": 1,
-            "Conservative": 2,
-            "Balanced": 3,
-            "Growth": 4,
-            "Aggressive": 5,
-            }
-            target_risk_level = profile_to_level.get(risk_profile, 3)
+            principal = final_profile.investment_budget
+            months = final_profile.investment_term_months
 
-            # Render product cards
+            best_card_html = None
+            alt_cards_html: list[str] = []
+
             for idx, rec in enumerate(recommendations):
-            # How far is this product from the target risk level?
-                risk_diff = abs(rec.risk_level - target_risk_level)
-
-            if risk_diff <= 1:
-                # Good risk match → Best match
-                bg_colour = "#e6ffe6"
-                title = "🌟 Best match"
-            else:
-                # Much higher / lower risk → Alternative option
-                bg_colour = "#f5f5f5"
-                title = "Alternative option"
-
-            # Render product cards
-            for idx, rec in enumerate(recommendations):
-                # Decide styling: first = best match, others = alternatives
+                # First product = Best match, others = Alternative option
                 if idx == 0:
-                    # Best match - green-ish background
                     bg_colour = "#e6ffe6"
                     title = "🌟 Best match"
                 else:
-                    # Alternative options - light grey background
                     bg_colour = "#f5f5f5"
                     title = "Alternative option"
-
-                principal = final_profile.investment_budget
-                months = final_profile.investment_term_months
 
                 # Build content lines (plain text, we will wrap in HTML)
                 lines = [
@@ -287,9 +263,7 @@ if ai_profile is not None:
                             if remaining_months == 0:
                                 duration_text = f"{whole_years} years"
                             else:
-                                duration_text = (
-                                    f"{whole_years} years {remaining_months} months"
-                                )
+                                duration_text = f"{whole_years} years {remaining_months} months"
 
                         # Highlight projection sentence
                         projection_line = (
@@ -304,7 +278,7 @@ if ai_profile is not None:
                             "so projection is not shown."
                         )
 
-                # Render card with background colour
+                # Build the card HTML once
                 card_html = f"""
                 <div style="background-color:{bg_colour}; padding:16px;
                             border-radius:10px; margin-bottom:12px;">
@@ -316,23 +290,39 @@ if ai_profile is not None:
                     </div>
                 </div>
                 """
-                st.markdown(card_html, unsafe_allow_html=True)
 
-            # Build PDF report and show download button
+                # Store separately: first as best, rest as alternatives
+                if idx == 0:
+                    best_card_html = card_html
+                else:
+                    alt_cards_html.append(card_html)
+
+            # 🔹 Render best match full width
+            if best_card_html:
+                st.markdown(best_card_html, unsafe_allow_html=True)
+
+            # 🔹 Render alternatives in two columns
+            if alt_cards_html:
+                st.markdown("#### Alternative options")
+                col1, col2 = st.columns(2)
+                for i, html in enumerate(alt_cards_html):
+                    target_col = col1 if i % 2 == 0 else col2
+                    with target_col:
+                        st.markdown(html, unsafe_allow_html=True)
+
+            # (PDF generation stays exactly as you have it)
             pdf_bytes = build_pdf_report(
                 profile=final_profile,
                 risk_score=score,
                 risk_profile=risk_profile,
                 recommendations=recommendations,
             )
-
             st.download_button(
                 label="📄 Download PDF report",
                 data=pdf_bytes,
                 file_name="investment_plan_report.pdf",
                 mime="application/pdf",
             )
-
             st.caption(
                 "Returns and projections are hypothetical and for demonstration "
                 "purposes only. This app does not provide real financial advice "
@@ -343,6 +333,34 @@ if ai_profile is not None:
                 "No suitable products were found for this profile. "
                 "You may want to adjust the inputs or product catalogue."
             )
+
+
+
+            # Build PDF report and show download button
+        #     pdf_bytes = build_pdf_report(
+        #         profile=final_profile,
+        #         risk_score=score,
+        #         risk_profile=risk_profile,
+        #         recommendations=recommendations,
+        #     )
+
+        #     st.download_button(
+        #         label="📄 Download PDF report",
+        #         data=pdf_bytes,
+        #         file_name="investment_plan_report.pdf",
+        #         mime="application/pdf",
+        #     )
+
+        #     st.caption(
+        #         "Returns and projections are hypothetical and for demonstration "
+        #         "purposes only. This app does not provide real financial advice "
+        #         "or guaranteed outcomes."
+        #     )
+        # else:
+        #     st.warning(
+        #         "No suitable products were found for this profile. "
+        #         "You may want to adjust the inputs or product catalogue."
+        #     )
 
 # --------------------------------------------------
 # Reset button - always visible
