@@ -54,9 +54,9 @@ def build_pdf_report(
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    # ---------- Section: Client Profile ----------
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(0, 8, "Client Profile", ln=1)
+    # # ---------- Section: Client Profile ----------
+    # pdf.set_font("Helvetica", "B", 12)
+    # pdf.cell(0, 8, "Client Profile", ln=1)
 
 
     # ---------- Section: Client Profile ----------
